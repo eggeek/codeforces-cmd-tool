@@ -74,7 +74,7 @@ def get_solved():
     from os.path import isfile
     from os import path
     import re
-    p = config['directory']
+    p = path.join('..', config['directory'])
     solved = [i.split('.')[0] for i in ls(p) if isfile(path.join(p, i))]
     solved = [re.sub("^\d+", re.findall("^\d+", i)[0] + '/', i) for i in solved]
     return solved
