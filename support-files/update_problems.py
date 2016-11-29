@@ -21,7 +21,6 @@ def get_current_problem_set():
 
 
 def get_problem_set_from_json():
-    import json
     respj = {}
     with open("r.json", "r") as f:
         respj = json.load(f)

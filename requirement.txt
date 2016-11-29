@@ -1,0 +1,7 @@
+json
+requests
+tinydb
+HTMLParser
+argparse
+jinja2
+pyquery
