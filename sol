@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+import requests
+import HTMLParser
+import argparse
+import json
+from os import mkdir, symlink
+from jinja2 import Template
+from pyquery.pyquery import PyQuery as pq
+from tinydb import TinyDB, Query
+
+config = json.load(open("support-files/config.json", "r"))
+
+
+def get_default_problem():
+    db = TinyDB('support-files/db.json')
+    p = Query()
+    q1 = (p.solvedCount <= 2000) | (p.index == 'C')
+    q2 = (p.isSolved == 0)
+    ps = db.search((q1) & q2)
+    ps.sort(key=lambda x: x['solvedCount'], reverse=True)
+    pinfo = ps[0]
+    pinfo.pop('tags')
+    pinfo.pop('type')
+    pinfo.pop('isSolved')
+    url_templet = "http://codeforces.com/problemset/problem/{name}"
+    contest_url_templet = "http://codeforces.com/contest/{cid}/problem/{index}"
+    pid = str(ps[0]['contestId']) + '/' + ps[0]['index']
+    problem_url = url_templet.format(name=pid)
+    contest_url = contest_url_templet.format(cid=pinfo['contestId'],
+                                             index=pinfo['index'])
+    pinfo['problem_url'] = problem_url
+    pinfo['contest_url'] = contest_url
+    pinfo['pid'] = pid
+    return pinfo
+
+
+def gen_java_tmpl(problem):
+    tmpl = Template(open(config['java'], "r").read())
+    tmpl_str = tmpl.render(problem=problem)
+    return tmpl_str
+
+
+def write_file(filename='', content=u''):
+    print "add sample: %s" % filename
+    with open(filename, "w") as f:
+        f.write(content)
+
+
+def escape(html=u""):
+    return html.replace(r"<br/>", "\n")
+
+
+def extract_sample(directory='', url=''):
+    r = requests.get(url)
+    raw_page = r.content
+    h = HTMLParser.HTMLParser()
+    html = h.unescape(raw_page.decode("utf-8"))
+    doc = pq(html)
+    in_no = 0
+    out_no = 0
+    tests = doc(".sample-test")
+    for i in tests.children():
+        if i.attrib['class'] == 'input':
+            case_in = pq(i)("pre").html()
+            write_file(filename="%s/%d.in" % (directory, in_no), content=escape(case_in))
+            in_no += 1
+        if i.attrib['class'] == 'output':
+            case_out = pq(i)("pre").html()
+            write_file(filename="%s/%d.out" % (directory, out_no), content=escape(case_out))
+            out_no += 1
+
+
+def work():
+    pinfo = get_default_problem()
+    default_pid = pinfo['pid']
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('problem', nargs='?', default=default_pid.replace('/', ''))
+    parser.set_defaults(lang='cpp')
+    parser.add_argument('-py', dest='lang', action="store_const", const="py")
+    parser.add_argument('-java', dest='lang', action="store_const", const="java")
+
+    args = parser.parse_args()
+    problem = args.problem
+    lang = args.lang
+
+    path = './%s' % problem
+    print "%s has been created" % path
+    if problem == default_pid.replace('/', ''):
+        pinfo.pop('pid')
+        for k, v in pinfo.items():
+            print "%-15s:   %s" % (k, v)
+    mkdir(path)
+    symlink("../support-files/run", "%s/run" % path)
+    filepath = '%s/%s.%s' % (path, args.problem, lang)
+
+    with open(filepath, "w") as f:
+        if lang == 'py':
+            template = open(config['py']).read()
+        elif lang == 'java':
+            template = gen_java_tmpl(problem)
+        else:
+            template = open(config['cpp']).read()
+        f.write(template)
+    extract_sample(directory=path, url=pinfo['contest_url'])
+
+if __name__ == "__main__":
+    work()

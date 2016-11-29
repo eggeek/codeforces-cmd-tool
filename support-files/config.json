@@ -1,0 +1,7 @@
+{
+  "directory": "/Users/eggeek/project/ACEveryDay/eggeek/codeforces",
+  "api_problems": "http://codeforces.com/api/problemset.problems",
+  "java": "support-files/templates/java.tmpl",
+  "py": "support-files/templates/acm.py",
+  "cpp": "support-files/templates/acm.cpp"
+}

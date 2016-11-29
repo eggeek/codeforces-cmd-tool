@@ -1,0 +1,46 @@
+import java.io.*;
+import java.util.*;
+
+public class {{problem}} {
+    public static void solution(In in, PrintWriter out)
+            throws IOException {
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                System.in));
+        PrintWriter out = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(System.out)));
+        In in = new In(reader);
+        solution(in, out);
+        out.close();
+    }
+
+    protected static class In {
+        private BufferedReader reader;
+        private StringTokenizer tokenizer = new StringTokenizer("");
+
+        public In(BufferedReader reader) {
+            this.reader = reader;
+        }
+
+        public String next() throws IOException {
+            while (!tokenizer.hasMoreTokens())
+                tokenizer = new StringTokenizer(reader.readLine());
+            return tokenizer.nextToken();
+        }
+
+        public int nextInt() throws IOException {
+            return Integer.parseInt(next());
+        }
+
+        public double nextDouble() throws IOException {
+            return Double.parseDouble(next());
+        }
+
+        public long nextLong() throws IOException {
+            return Long.parseLong(next());
+        }
+    }
+}
